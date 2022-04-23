@@ -9,7 +9,7 @@ class Cookie
 
     static public function set_encrypted($name, $data)
     {
-        $encrypted_cookie_data = self::encrypt(json_encode($data));
+        $encrypted_cookie_data = self::encrypt($data);
         setcookie($name, $encrypted_cookie_data, time() + (24 * 60 * 60), '/', '.example.com');
     }
 
@@ -27,6 +27,7 @@ class Cookie
 
     static private function encrypt($data)
     {
+        $data = json_encode($data);
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $encrypted_result = sodium_crypto_secretbox($data, $nonce, sodium_hex2bin(self::$key));
         $encoded_result = base64_encode($nonce . $encrypted_result);
@@ -42,7 +43,7 @@ class Cookie
             $encrypted_result = mb_substr($decoded_result, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, null, '8bit');
             $decrypted_result = sodium_crypto_secretbox_open($encrypted_result, $nonce, sodium_hex2bin(self::$key));
 
-            return $decrypted_result;
+            return json_decode($decrypted_result);
         } catch (\Throwable $th) {
             return false;
         }
